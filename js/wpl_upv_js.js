@@ -1,6 +1,6 @@
 jQuery(document).ready(function(){
 
-    jQuery('.wpl_upvote').click(function(){
+    jQuery('.wpl-upvote').click(function(){
 
         var post_id = jQuery(this).data('post_id');
 
@@ -13,7 +13,7 @@ jQuery(document).ready(function(){
                 nonce:vars.nonce
             },
             success: function(response) {
-                jQuery('.wpl_upv_votes').html( response );
+                jQuery('.num-votes-' + post_id).html( response );
             },
             error: function(errorThrown){
                 console.log(errorThrown);

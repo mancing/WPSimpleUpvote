@@ -45,11 +45,11 @@ if(!class_exists( 'WPL_Simple_Upvote' )) {
                 $upvotes = 0;
 
             /* Display upvotes and link */
-            echo '<div class="wpl_upvotes"><span class="wpl_upv_votes">' . $upvotes . '</span><span class="wpl_upvote" data-post_id="'.$post->ID.'" >Up Vote</span></div>';
+            echo '<div class="wpl-upvotes"><span class="wpl-upv-votes num-votes-'. $post->ID .'">' . $upvotes . '</span><span class="wpl-upvote wpl-upvote-'.$post->ID.'" data-post_id="'.$post->ID.'" >Up Vote</span></div>';
         }
 
         public static function wpl_upvote_post() {
-
+            global $wpdb;
             /* Get post data from AJAX call */
             $post_id = $_POST['post_id'];
             $nonce = $_POST['nonce'];
@@ -58,10 +58,18 @@ if(!class_exists( 'WPL_Simple_Upvote' )) {
             if ( ! wp_verify_nonce( $nonce, 'wpl_upvote' ) )
                 die( 'Security check' );
 
-            /* Update the post meta to save upvote */
+            /* Check if this user has voted before by IP */
+            $user_ip = $_SERVER['REMOTE_ADDR'];
+
+            $has_user_voted = $wpdb->get_var( $wpdb->prepare( "SELECT meta_value from $wpdb->postmeta WHERE post_id = %d and meta_key = '_wpl_upv_user_ip'", $post_id ) );
             $upvotes = get_post_meta( $post_id, '_wpl_upvotes', true );
-            $upvotes = intval( $upvotes ) + 1;
-            $upvote = update_post_meta( $post_id, '_wpl_upvotes', $upvotes );
+
+            if( "" == $has_user_voted ) {
+                /* Update the post meta to save upvote */
+                $upvotes = intval( $upvotes ) + 1;
+                $upvote = update_post_meta( $post_id, '_wpl_upvotes', $upvotes );
+                $user_has_voted = update_post_meta( $post_id, '_wpl_upv_user_ip', $user_ip );
+            }
 
             /* Return new number of upvotes to page */
             echo $upvotes;
