@@ -5,13 +5,14 @@ Plugin URI: http://royscheeren.com
 Description: Simple plugin to give your readers the ability to UpVote your post.
 Version: 1.0
 Author: Roy Scheeren
-Author URI: http://www.royscheeren.com
+Author URI: http://wplab.nl
 
 License: GNU General Public License v3.0
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 */
 
+/* Check if this class doesn't exist yet */
 if(!class_exists( 'WPL_Simple_Upvote' )) {
 
     class WPL_Simple_Upvote {
@@ -41,6 +42,8 @@ if(!class_exists( 'WPL_Simple_Upvote' )) {
 
             /* Get number of upvotes or set to 0 if there are none */
             $upvotes = get_post_meta( $post->ID, '_wpl_upvotes', true );
+            
+            /* Set upvotes to zero if field is empty */
             if ( $upvotes == '' )
                 $upvotes = 0;
 
@@ -49,7 +52,7 @@ if(!class_exists( 'WPL_Simple_Upvote' )) {
         }
 
         public static function wpl_upvote_post() {
-            global $wpdb;
+        
             /* Get post data from AJAX call */
             $post_id = $_POST['post_id'];
             $nonce = $_POST['nonce'];
@@ -58,18 +61,11 @@ if(!class_exists( 'WPL_Simple_Upvote' )) {
             if ( ! wp_verify_nonce( $nonce, 'wpl_upvote' ) )
                 die( 'Security check' );
 
-            /* Check if this user has voted before by IP */
-            $user_ip = $_SERVER['REMOTE_ADDR'];
-
-            $has_user_voted = $wpdb->get_var( $wpdb->prepare( "SELECT meta_value from $wpdb->postmeta WHERE post_id = %d and meta_key = '_wpl_upv_user_ip'", $post_id ) );
             $upvotes = get_post_meta( $post_id, '_wpl_upvotes', true );
 
-            if( "" == $has_user_voted ) {
-                /* Update the post meta to save upvote */
-                $upvotes = intval( $upvotes ) + 1;
-                $upvote = update_post_meta( $post_id, '_wpl_upvotes', $upvotes );
-                $user_has_voted = update_post_meta( $post_id, '_wpl_upv_user_ip', $user_ip );
-            }
+            /* Update the post meta to save upvote */
+            $upvotes = intval( $upvotes ) + 1;
+            $upvote = update_post_meta( $post_id, '_wpl_upvotes', $upvotes );
 
             /* Return new number of upvotes to page */
             echo $upvotes;
@@ -78,6 +74,5 @@ if(!class_exists( 'WPL_Simple_Upvote' )) {
     }
 
     $wpl_upvotes = WPL_Simple_Upvote::init();
-
 }
 ?>
